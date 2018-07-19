@@ -14,36 +14,36 @@ class IOUIssueFlowTests : IOUFlowTestsBase() {
 
     @Test
     fun `flow returns transaction signed by both parties`() {
-        val signedTx = issueIOU(a, b, 10.POUNDS)
+        val signedTx = issueIOU(borrower, lender, 10.POUNDS)
         network.waitQuiescent()
         requireThat {
             "Both parties should sign" using (
                     signedTx.sigs.map { it.by }.toSet() ==
-                            listOf(a, b).map { it.info.singleIdentity().owningKey }.toSet())
+                            listOf(borrower, lender).map { it.info.singleIdentity().owningKey }.toSet())
         }
     }
 
     @Test
     fun `amount should be positive`() {
         assertFailsWith<TransactionVerificationException> {
-            issueIOU(a, b, 0.POUNDS)
+            issueIOU(borrower, lender, 0.POUNDS)
         }
     }
 
     @Test
     fun `amount should not be too high`() {
         assertFailsWith<FlowException> {
-            issueIOU(a, b, 101.POUNDS)
+            issueIOU(borrower, lender, 101.POUNDS)
         }
     }
 
     @Test
     fun `successfully issue IOU`() {
-        val signedTx = issueIOU(a, b, 10.POUNDS)
+        val signedTx = issueIOU(borrower, lender, 10.POUNDS)
         network.waitQuiescent()
 
-        val aIOU = a.services.loadState(signedTx.tx.outRef<IOUState>(0).ref).data as IOUState
-        val bIOU = b.services.loadState(signedTx.tx.outRef<IOUState>(0).ref).data as IOUState
+        val aIOU = borrower.services.loadState(signedTx.tx.outRef<IOUState>(0).ref).data as IOUState
+        val bIOU = lender.services.loadState(signedTx.tx.outRef<IOUState>(0).ref).data as IOUState
 
         assertEquals(aIOU, bIOU)
     }
