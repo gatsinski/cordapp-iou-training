@@ -3,6 +3,7 @@ package tech.industria.training.iou.flow
 import net.corda.core.contracts.TransactionVerificationException
 import net.corda.core.contracts.requireThat
 import net.corda.core.flows.FlowException
+import net.corda.core.node.services.queryBy
 import net.corda.finance.POUNDS
 import net.corda.testing.core.singleIdentity
 import org.junit.Test
@@ -46,5 +47,22 @@ class IOUIssueFlowTests : IOUFlowTestsBase() {
         val bIOU = lender.services.loadState(signedTx.tx.outRef<IOUState>(0).ref).data as IOUState
 
         assertEquals(aIOU, bIOU)
+    }
+
+    @Test fun `IOU should be recorded by both parties`() {
+        val iouValue = 10.POUNDS
+        issueIOU(lender, borrower, iouValue)
+        network.waitQuiescent()
+
+        for (node in listOf(borrower, lender)) {
+            node.transaction {
+                val ious = node.services.vaultService.queryBy<IOUState>().states
+                assertEquals(1, ious.size)
+                val recordedState = ious.single().state.data
+                assertEquals(recordedState.amount, iouValue)
+                assertEquals(recordedState.lender, borrower.info.singleIdentity())
+                assertEquals(recordedState.borrower, lender.info.singleIdentity())
+            }
+        }
     }
 }
