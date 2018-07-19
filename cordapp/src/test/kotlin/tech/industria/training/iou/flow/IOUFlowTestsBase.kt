@@ -12,15 +12,15 @@ import java.util.*
 
 abstract class IOUFlowTestsBase {
     protected lateinit var network: MockNetwork
-    protected lateinit var a: StartedMockNode
-    protected lateinit var b: StartedMockNode
+    protected lateinit var borrower: StartedMockNode
+    protected lateinit var lender: StartedMockNode
 
     @Before
     fun setup() {
         network = MockNetwork(listOf("tech.industria.training.iou"), threadPerNode = true)
-        a = network.createNode()
-        b = network.createNode()
-        listOf(a, b).forEach {
+        borrower = network.createNode()
+        lender = network.createNode()
+        listOf(borrower, lender).forEach {
             it.registerInitiatedFlow(IOUIssueFlow.Responder::class.java)
         }
     }
