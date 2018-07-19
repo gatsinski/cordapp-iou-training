@@ -14,31 +14,6 @@ import kotlin.test.assertFailsWith
 class IOUIssueFlowTests : IOUFlowTestsBase() {
 
     @Test
-    fun `flow returns transaction signed by both parties`() {
-        val signedTx = issueIOU(borrower, lender, 10.POUNDS)
-        network.waitQuiescent()
-        requireThat {
-            "Both parties should sign" using (
-                    signedTx.sigs.map { it.by }.toSet() ==
-                            listOf(borrower, lender).map { it.info.singleIdentity().owningKey }.toSet())
-        }
-    }
-
-    @Test
-    fun `amount should be positive`() {
-        assertFailsWith<TransactionVerificationException> {
-            issueIOU(borrower, lender, 0.POUNDS)
-        }
-    }
-
-    @Test
-    fun `amount should not be too high`() {
-        assertFailsWith<FlowException> {
-            issueIOU(borrower, lender, 101.POUNDS)
-        }
-    }
-
-    @Test
     fun `successfully issue IOU`() {
         val signedTx = issueIOU(borrower, lender, 10.POUNDS)
         network.waitQuiescent()
@@ -63,6 +38,31 @@ class IOUIssueFlowTests : IOUFlowTestsBase() {
                 assertEquals(recordedState.lender, borrower.info.singleIdentity())
                 assertEquals(recordedState.borrower, lender.info.singleIdentity())
             }
+        }
+    }
+
+    @Test
+    fun `flow returns transaction signed by both parties`() {
+        val signedTx = issueIOU(borrower, lender, 10.POUNDS)
+        network.waitQuiescent()
+        requireThat {
+            "Both parties should sign" using (
+                    signedTx.sigs.map { it.by }.toSet() ==
+                            listOf(borrower, lender).map { it.info.singleIdentity().owningKey }.toSet())
+        }
+    }
+
+    @Test
+    fun `amount should be positive`() {
+        assertFailsWith<TransactionVerificationException> {
+            issueIOU(borrower, lender, 0.POUNDS)
+        }
+    }
+
+    @Test
+    fun `amount should not be too high`() {
+        assertFailsWith<FlowException> {
+            issueIOU(borrower, lender, 101.POUNDS)
         }
     }
 }
