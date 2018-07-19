@@ -43,4 +43,13 @@ abstract class IOUFlowTestsBase {
         val flow = IOUSettleFlow.Initiator(linearId)
         return borrower.startFlow(flow).getOrThrow()
     }
+
+    protected fun transferIOU(linearId: UniqueIdentifier,
+                              oldLender: StartedMockNode,
+                              newLender: StartedMockNode): SignedTransaction {
+        val newLenderIdentity = newLender.info.legalIdentities.first()
+        val flow = IOUTransferFlow.Initiator(linearId, newLenderIdentity)
+        return oldLender.startFlow(flow).getOrThrow()
+    }
+
 }
